@@ -13,10 +13,11 @@ type Config struct {
 		Keypath string `yaml:"keypath"`
 	} `yaml:"creds"`
 	Hosts []struct {
-		Name string `yaml:"name"`
-		Host string `yaml:"host"`
-		Cred string `yaml:"cred"`
-		Port string `yaml:"port"`
+		Name     string `yaml:"name"`
+		Host     string `yaml:"host"`
+		Cred     string `yaml:"cred"`
+		Port     string `yaml:"port"`
+		InitCmds string `yaml:"initcmds"`
 	} `yaml:"hosts"`
 }
 
@@ -40,10 +41,10 @@ func ParseConfig() (*Config, error) {
 	return c, err
 }
 
-func (c *Config) GetHost(name string) (host, port, cred string) {
+func (c *Config) GetHost(name string) (host, port, cred, cmds string) {
 	for _, v := range c.Hosts {
 		if v.Name == name {
-			return v.Host, v.Port, v.Cred
+			return v.Host, v.Port, v.Cred, v.InitCmds
 		}
 	}
 	return

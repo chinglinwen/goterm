@@ -21,12 +21,12 @@ const (
 )
 
 type SSHTerminal struct {
-	ip      string
-	user    string
-	pass    string
-	port    string
-	exitMsg string
-
+	ip          string
+	user        string
+	pass        string
+	port        string
+	exitMsg     string
+	initcmds    string
 	privKeyPath string
 
 	sess   *ssh.Session
@@ -44,6 +44,7 @@ func SetPort(port string) Option {
 		if len(port) == 0 {
 			return
 		}
+		klog.V(2).Info("set port: ", port)
 		t.port = port
 	}
 }
@@ -52,6 +53,7 @@ func SetExitMessage(msg string) Option {
 		if len(msg) == 0 {
 			return
 		}
+		klog.V(2).Info("set exitMsg: ", msg)
 		t.exitMsg = msg
 	}
 }
@@ -61,7 +63,19 @@ func SetKeyPath(keypath string) Option {
 		if len(keypath) == 0 {
 			return
 		}
+		klog.V(2).Info("set keypath: ", keypath)
 		t.privKeyPath = keypath
+	}
+}
+
+func SetInitCmds(initcmds string) Option {
+	return func(t *SSHTerminal) {
+		if len(initcmds) == 0 {
+			return
+		}
+		klog.Info("set initcmds: ", initcmds)
+		klog.V(2).Info("set initcmds: ", initcmds)
+		t.initcmds = initcmds
 	}
 }
 
@@ -241,6 +255,8 @@ func (t *SSHTerminal) interactiveSession() error {
 	if err != nil {
 		return err
 	}
+	t.doinitcmds()
+
 	err = t.sess.Wait()
 	if err != nil {
 		return err
@@ -248,6 +264,15 @@ func (t *SSHTerminal) interactiveSession() error {
 	return nil
 }
 
+func (t *SSHTerminal) doinitcmds() {
+	if len(t.initcmds) == 0 {
+		return
+	}
+	_, err := t.stdin.Write([]byte(t.initcmds))
+	if err != nil {
+		klog.Errorf("stdin write buf err: ", err)
+	}
+}
 func defaultKeyPath() string {
 	return filepath.Join(homedir(), ".ssh/id_rsa")
 }

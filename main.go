@@ -26,6 +26,7 @@ func main() {
 	user := flag.String("user", "root", "user to auth")
 	pass := flag.String("pass", "", "pass to auth, if empty, fall to key based auth")
 	keyPath := flag.String("keypath", defaultKeyPath(), "private key auth")
+	cmds := flag.String("initcmds", "", "init cmds after login")
 	flag.Usage = helpfunc
 	klog.InitFlags(flag.CommandLine)
 
@@ -40,7 +41,7 @@ func main() {
 			klog.V(2).Infof("keypath: %v", *keyPath)
 		}
 		// no pass provided, will use keybased
-		startssh(*ip, *port, *user, *pass, *keyPath)
+		startssh(*ip, *port, *user, *pass, *keyPath, *cmds)
 		return
 	}
 	// if ip not provided, get it from config
@@ -59,17 +60,20 @@ func main() {
 	if err != nil {
 		exiterr("parse config ", err)
 	}
-	chost, cport, ccred := c.GetHost(name)
+	chost, cport, ccred, ccmds := c.GetHost(name)
 	if len(chost) == 0 {
 		exit("there's no config for " + name)
 	}
 	cuser, cpass, ckeypath := c.GetCred(ccred)
-	startssh(chost, cport, cuser, cpass, ckeypath)
+	startssh(chost, cport, cuser, cpass, ckeypath, ccmds)
 }
 
-func startssh(ip, port, user, pass, keypath string) {
+func startssh(ip, port, user, pass, keypath, cmds string) {
 	klog.Infof("connecting to ip: %v...", ip)
-	t := ssh.New(ip, user, pass, ssh.SetPort(port), ssh.SetKeyPath(keypath))
+	t := ssh.New(ip, user, pass,
+		ssh.SetPort(port),
+		ssh.SetKeyPath(keypath),
+		ssh.SetInitCmds(cmds))
 	err := t.Start()
 	if err != nil {
 		exiterr("start term", err)
