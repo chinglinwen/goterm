@@ -16,3 +16,6 @@
 
 goterm
 *.patch
+.vscode
+goterm-linux-amd64
+goterm-mac-arm64

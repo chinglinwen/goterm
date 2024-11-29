@@ -25,8 +25,9 @@ Therefore this tool, also for easier hosts management.
 
 ```bash
 Usage: goterm <name>
-       goterm -ip <127.0.0.1> -user <user> [ -pass <pass> ]
-       goterm -ip <127.0.0.1> -user <user> [ -pass <pass> ] [ -p 2222 ]
+       goterm <name|ip|expr|pattern> [default]
+       goterm <name|ip|expr|pattern> [vm]
+       goterm [-port=2222] [-user=userfoo] [-initcmds='sudo su -\n'] <name|ip|expr|pattern> [vm] 
 ```
 
 ## Config

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/spf13/viper"
 	"k8s.io/klog"
 )
@@ -17,6 +19,7 @@ type Config struct {
 		Host     string `yaml:"host"`
 		Cred     string `yaml:"cred"`
 		Port     string `yaml:"port"`
+		Label    string `yaml:"label"`
 		InitCmds string `yaml:"initcmds"`
 	} `yaml:"hosts"`
 }
@@ -41,24 +44,26 @@ func ParseConfig() (*Config, error) {
 	return c, err
 }
 
-func (c *Config) GetHost(name string) (host, port, cred, cmds string) {
+func (c *Config) GetHost(expr string) (host, port, cred, cmds string) {
+	klog.V(2).Infof("checking host: %v", expr)
 	for _, v := range c.Hosts {
-		if v.Name == name {
+		if v.Name == expr || strings.HasSuffix(v.Host, expr) {
+			klog.V(2).Infof("got cred: %+v", v)
 			return v.Host, v.Port, v.Cred, v.InitCmds
 		}
 	}
-	return
+	return expr, "22", "", ""
 }
 
 // if name empty, get from default cred
 func (c *Config) GetCred(name string) (user, pass, keypath string) {
-	if len(name) == 0 {
-		name = "default"
-	}
+	klog.V(2).Infof("checking cred: %v", name)
 	for _, v := range c.Creds {
 		if v.Name == name {
+			klog.V(2).Infof("found cred for: %v", name)
 			return v.User, v.Pass, v.Keypath
 		}
 	}
+	klog.V(2).Infof("cred not found for: %v", name)
 	return
 }
